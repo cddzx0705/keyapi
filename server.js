@@ -15,15 +15,15 @@ devices: thiết bị đã login
 let keys = [
 {
 key:"VIP2026",
-expire: Date.now() + (7*24*60*60*1000), // 7 ngày
-maxUse:3,
+expire: Date.now() + (10*24*60*60*1000), // 7 ngày
+maxUse:9999999999,
 used:0,
 devices:[]
 },
 {
 key:"TEST1",
-expire: Date.now() + (1*24*60*60*1000),
-maxUse:1,
+expire: Date.now() + (10*24*60*60*1000),
+maxUse:999999999,
 used:0,
 devices:[]
 }
