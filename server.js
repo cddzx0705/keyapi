@@ -13,7 +13,7 @@ CONFIG ADMIN
 */
 
 const ADMIN_USER = "admin";
-const ADMIN_PASS = "1";
+const ADMIN_PASS = "123456";
 
 /*
 =============================
