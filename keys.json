@@ -1,0 +1,13 @@
+{
+ "VIP2026":{
+  "expire":"2026-12-31",
+  "maxDevices":3,
+  "devices":[]
+ },
+
+ "FASTIOS1":{
+  "expire":"2026-05-01",
+  "maxDevices":1,
+  "devices":[]
+ }
+}
