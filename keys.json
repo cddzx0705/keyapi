@@ -1,13 +1,16 @@
-{
- "VIP2026":{
-  "expire":"2029-12-31",
-  "maxDevices":99999,
-  "devices":[]
- },
-
- "FASTIOS1":{
-  "expire":"2029-05-01",
-  "maxDevices":9999,
-  "devices":[]
- }
-}
+[
+  {
+    "key": "VIP2026",
+    "expire": "2026-12-31",
+    "maxUses": 999999,
+    "used": 0,
+    "devices": []
+  },
+  {
+    "key": "TESTFREE",
+    "expire": "2025-06-01",
+    "maxUses": 99999,
+    "used": 0,
+    "devices": []
+  }
+]
