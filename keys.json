@@ -1,16 +1,1 @@
-[
-  {
-    "key": "VIP2026",
-    "expire": "2026-12-31",
-    "maxUses": 999999,
-    "used": 0,
-    "devices": []
-  },
-  {
-    "key": "TESTFREE",
-    "expire": "2025-06-01",
-    "maxUses": 99999,
-    "used": 0,
-    "devices": []
-  }
-]
+[]
