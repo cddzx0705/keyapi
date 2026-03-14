@@ -1,80 +1,131 @@
 const express = require("express");
+const fs = require("fs");
+
 const app = express();
-app.get("/", (req,res)=>{
-res.send("SYSTEM IOS SERVER ONLINE");
-});
 app.use(express.json());
 
-/*
-KEY STRUCTURE
-key: mã key
-expire: ngày hết hạn (timestamp)
-maxUse: số lượt tối đa
-used: số lượt đã dùng
-devices: thiết bị đã login
-*/
+/* ================= CONFIG ================= */
 
-let keys = [
-{
-key:"VIP2026",
-expire: Date.now() + (10*24*60*60*1000), // 7 ngày
-maxUse:9999999999,
-used:0,
-devices:[]
-},
-{
-key:"TEST1",
-expire: Date.now() + (10*24*60*60*1000),
-maxUse:999999999,
-used:0,
-devices:[]
-}
-];
+const ADMIN = {
+  username: "admin",
+  password: "123456",
+  token: "ADMIN_TOKEN_2026"
+};
 
+const DB = "./keys.json";
 
-// ================= CHECK KEY =================
-app.post("/checkKey",(req,res)=>{
+/* ================= LOAD DB ================= */
 
-const {key,deviceId}=req.body;
+let keys = [];
 
-const k = keys.find(x=>x.key===key);
-
-if(!k){
-return res.json({success:false,message:"Invalid key"});
+if (fs.existsSync(DB)) {
+  keys = JSON.parse(fs.readFileSync(DB));
 }
 
-// kiểm tra hết hạn
-if(Date.now() > k.expire){
-return res.json({success:false,message:"Key expired"});
+/* ================= SAVE DB ================= */
+
+function saveDB() {
+  fs.writeFileSync(DB, JSON.stringify(keys, null, 2));
 }
 
-// kiểm tra device
-if(!k.devices.includes(deviceId)){
+/* ================= ADMIN LOGIN ================= */
 
-if(k.used >= k.maxUse){
-return res.json({success:false,message:"Key usage limit"});
-}
+app.post("/admin/login", (req, res) => {
 
-k.devices.push(deviceId);
-k.used++;
-}
+  const { username, password } = req.body;
 
-res.json({
-success:true,
-expire:k.expire,
-used:k.used,
-maxUse:k.maxUse
+  if (
+    username === ADMIN.username &&
+    password === ADMIN.password
+  ) {
+    return res.json({
+      success: true,
+      token: ADMIN.token
+    });
+  }
+
+  res.json({ success: false, message: "Wrong account" });
 });
 
+/* ================= CREATE KEY ================= */
+
+app.post("/admin/createKey", (req, res) => {
+
+  const { token, key, days, maxUse } = req.body;
+
+  if (token !== ADMIN.token) {
+    return res.json({ success:false, message:"Unauthorized" });
+  }
+
+  if (keys.find(k => k.key === key)) {
+    return res.json({ success:false, message:"Key existed" });
+  }
+
+  const newKey = {
+    key,
+    expire: Date.now() + (days * 86400000),
+    maxUse,
+    used: 0,
+    devices:[]
+  };
+
+  keys.push(newKey);
+  saveDB();
+
+  res.json({
+    success:true,
+    message:"Key created",
+    data:newKey
+  });
 });
 
+/* ================= CHECK KEY ================= */
 
-// ================= VIEW KEY (TEST) =================
-app.get("/keys",(req,res)=>{
-res.json(keys);
+app.post("/checkKey", (req, res) => {
+
+  const { key, deviceId } = req.body;
+
+  const k = keys.find(x => x.key === key);
+
+  if (!k)
+    return res.json({ success:false, message:"Invalid key" });
+
+  if (Date.now() > k.expire)
+    return res.json({ success:false, message:"Key expired" });
+
+  if (!k.devices.includes(deviceId)) {
+
+    if (k.used >= k.maxUse)
+      return res.json({ success:false, message:"Usage limit" });
+
+    k.devices.push(deviceId);
+    k.used++;
+
+    saveDB();
+  }
+
+  res.json({
+    success:true,
+    expire:k.expire,
+    used:k.used,
+    maxUse:k.maxUse
+  });
 });
 
+/* ================= VIEW KEYS ================= */
 
-app.listen(process.env.PORT || 3000,()=>{
-console.log("SYSTEM IOS KEY SERVER RUNNING");
+app.post("/admin/keys",(req,res)=>{
+
+  const {token} = req.body;
+
+  if(token !== ADMIN.token)
+    return res.json({success:false});
+
+  res.json(keys);
+});
+
+/* ================= START ================= */
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log("✅ KEY SERVER RUNNING");
 });
