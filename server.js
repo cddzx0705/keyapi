@@ -1,3 +1,6 @@
+app.get("/", (req,res)=>{
+res.send("SYSTEM IOS SERVER ONLINE");
+});
 const express = require("express");
 const app = express();
 
