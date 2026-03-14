@@ -1,67 +1,78 @@
 const express = require("express");
-const fs = require("fs");
-
 const app = express();
+
 app.use(express.json());
 
-const APP_TOKEN = "APP_IF5EJ3IKKVA1JY5AKURW1FTVDX6XIFLT";
+/*
+KEY STRUCTURE
+key: mã key
+expire: ngày hết hạn (timestamp)
+maxUse: số lượt tối đa
+used: số lượt đã dùng
+devices: thiết bị đã login
+*/
 
-function loadKeys(){
-return JSON.parse(fs.readFileSync("keys.json"));
+let keys = [
+{
+key:"VIP2026",
+expire: Date.now() + (7*24*60*60*1000), // 7 ngày
+maxUse:3,
+used:0,
+devices:[]
+},
+{
+key:"TEST1",
+expire: Date.now() + (1*24*60*60*1000),
+maxUse:1,
+used:0,
+devices:[]
 }
+];
 
-function saveKeys(data){
-fs.writeFileSync("keys.json",JSON.stringify(data,null,2));
-}
 
+// ================= CHECK KEY =================
 app.post("/checkKey",(req,res)=>{
 
-const {key,token,deviceId}=req.body;
+const {key,deviceId}=req.body;
 
-if(token!==APP_TOKEN){
-return res.json({status:false,message:"Token sai"});
-}
-
-let keys=loadKeys();
-
-let k=keys[key];
+const k = keys.find(x=>x.key===key);
 
 if(!k){
-return res.json({status:false,message:"Key không tồn tại"});
+return res.json({success:false,message:"Invalid key"});
 }
 
-let now=new Date();
-let expire=new Date(k.expire);
-
-if(now>expire){
-return res.json({status:false,message:"Key đã hết hạn"});
+// kiểm tra hết hạn
+if(Date.now() > k.expire){
+return res.json({success:false,message:"Key expired"});
 }
 
-if(k.devices.length>=k.maxDevices && !k.devices.includes(deviceId)){
-return res.json({status:false,message:"Key đã hết lượt sử dụng"});
-}
-
+// kiểm tra device
 if(!k.devices.includes(deviceId)){
-k.devices.push(deviceId);
+
+if(k.used >= k.maxUse){
+return res.json({success:false,message:"Key usage limit"});
 }
 
-saveKeys(keys);
+k.devices.push(deviceId);
+k.used++;
+}
 
 res.json({
-status:true,
-message:"Key hợp lệ",
+success:true,
 expire:k.expire,
-devices:k.devices.length,
-maxDevices:k.maxDevices
+used:k.used,
+maxUse:k.maxUse
 });
 
 });
 
-app.get("/",(req,res)=>{
-res.send("KEY SERVER ONLINE");
+
+// ================= VIEW KEY (TEST) =================
+app.get("/keys",(req,res)=>{
+res.json(keys);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT,()=>{
-console.log("Server chạy "+PORT);
+
+app.listen(process.env.PORT || 3000,()=>{
+console.log("SYSTEM IOS KEY SERVER RUNNING");
 });
