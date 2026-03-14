@@ -1,5 +1,5 @@
 {
-  "name": "systemios-key",
+  "name": "ios-key-server",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
